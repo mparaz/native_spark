@@ -86,6 +86,9 @@ pub enum Error {
     #[error(transparent)]
     ShuffleError(#[from] crate::shuffle::ShuffleError),
 
+    #[error("failure while downcasting an object to a concrete type: {0}")]
+    DowncastFailure(&'static str),
+
     #[error("operation not supported: {0}")]
     UnsupportedOperation(&'static str),
 }

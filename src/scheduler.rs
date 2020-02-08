@@ -14,6 +14,7 @@ use crate::serializable_traits::{Data, SerFunc};
 use crate::shuffle::ShuffleMapTask;
 use crate::stage::Stage;
 use crate::task::{TaskBase, TaskContext, TaskOption};
+use futures::stream::StreamExt;
 use log::{error, info};
 
 pub trait Scheduler {
@@ -41,15 +42,15 @@ pub(crate) trait NativeScheduler {
         F: SerFunc((TaskContext, Box<dyn Iterator<Item = T>>)) -> U,
     {
         if jt.final_stage.parents.is_empty() && (jt.num_output_parts == 1) {
-            let executor = env::Env::get_async_handle();
-            futures::executor::block_on(tokio::task::block_in_place(|| async {
+            let executor = env::Env::get().async_rt.as_mut().unwrap();
+            executor.block_on(async {
                 let split = (jt.final_rdd.splits()[jt.output_parts[0]]).clone();
                 let task_context = TaskContext::new(jt.final_stage.id, jt.output_parts[0], 0);
                 Ok(Some(vec![(&jt.func)((
                     task_context,
-                    jt.final_rdd.iterator(split)?,
+                    jt.final_rdd.iterator(split).await?,
                 ))]))
-            }))
+            })
         } else {
             Ok(None)
         }
