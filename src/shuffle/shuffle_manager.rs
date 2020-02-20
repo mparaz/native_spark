@@ -11,6 +11,7 @@ use super::Result;
 use super::StdResult;
 use crate::env;
 use crate::shuffle::*;
+use crate::utils::get_dynamic_port;
 use crossbeam::channel as cb_channel;
 use futures::future;
 use hyper::{
