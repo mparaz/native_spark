@@ -44,17 +44,23 @@ pub(crate) struct Env {
     pub shuffle_manager: ShuffleManager,
     pub shuffle_fetcher: ShuffleFetcher,
     pub cache_tracker: CacheTracker,
-    pub async_rt: Option<Runtime>,
+    async_rt: Option<Runtime>,
 }
 
 /// Builds an async executor for executing DAG tasks according to env,
 /// machine properties and schedulling mode.
-pub(crate) fn build_async_executor() -> Runtime {
-    tokio::runtime::Builder::new()
-        .enable_all()
-        .threaded_scheduler()
-        .build()
-        .unwrap()
+fn build_async_executor() -> Option<Runtime> {
+    if Handle::try_current().is_ok() {
+        None
+    } else {
+        Some(
+            tokio::runtime::Builder::new()
+                .enable_all()
+                .threaded_scheduler()
+                .build()
+                .unwrap(),
+        )
+    }
 }
 
 impl Env {
@@ -84,7 +90,7 @@ impl Env {
                 conf.local_ip,
                 &the_cache,
             ),
-            async_rt: Some(build_async_executor()),
+            async_rt: build_async_executor(),
         }
     }
 }
