@@ -181,7 +181,6 @@ impl LocalScheduler {
                     }
                 }
             }
-
             if !jt.failed.lock().is_empty()
                 && fetch_failure_duration.as_millis() > self_borrow.resubmit_timeout
             {
@@ -218,7 +217,7 @@ impl LocalScheduler {
     }
 
     async fn run_task<T: Data, U: Data, F>(
-        event_queues: Arc<Mutex<HashMap<usize, VecDeque<CompletionEvent>>>>,
+        event_queues: Arc<DashMap<usize, VecDeque<CompletionEvent>>>,
         task: Vec<u8>,
         id_in_job: usize,
         attempt_id: usize,
